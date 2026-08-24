@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gold Price Redirect</title>
 
+  <!-- iOS & Android icon link tags -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
 
-  <!-- 10-second delay so you have time to save the icon -->
+  <!-- Immediate JavaScript redirect -->
   <script>
-    setTimeout(function() {
-      window.location.replace("https://www.investing.com/currencies/xau-usd");
-    }, 10000);
+    window.location.replace("https://www.investing.com/currencies/xau-usd");
   </script>
+
+  <!-- Fallback meta refresh redirect -->
+  <meta http-equiv="refresh" content="0;url=https://www.investing.com/currencies/xau-usd">
 </head>
 <body>
-  <p>Loading... Tap the three dots menu now to add to home screen!</p>
+  <p>Redirecting to Investing.com...</p>
 </body>
 </html>
