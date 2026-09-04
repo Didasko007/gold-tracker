@@ -2,22 +2,208 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gold Price - XAU/USD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="XAU/USD">
+  <title>XAU/USD Gold Price</title>
+  <link rel="icon" type="image/jpeg" href="icon.jpeg">
+  <link rel="apple-touch-icon" href="icon.jpeg">
 
-  <link rel="apple-touch-icon" href="icon.png">
-  <link rel="icon" type="image/png" href="icon.png">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #050505;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-  <script>
-    window.location.replace("https://www.investing.com/currencies/xau-usd");
-  </script>
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .screen {
+      width: 100%;
+      max-width: 700px;
+      min-height: calc(100dvh - 48px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .symbol {
+      font-size: clamp(28px, 8vw, 52px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 34px;
+    }
+
+    .price {
+      font-size: clamp(76px, 21vw, 150px);
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      white-space: nowrap;
+    }
+
+    .currency {
+      margin-top: 24px;
+      font-size: clamp(20px, 5vw, 30px);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    .status {
+      margin-top: 34px;
+      font-size: clamp(18px, 4.5vw, 26px);
+      font-weight: 700;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #35d16f;
+      margin-right: 9px;
+      vertical-align: 2px;
+    }
+
+    .updated {
+      margin-top: 13px;
+      font-size: clamp(15px, 4vw, 21px);
+      opacity: 0.72;
+    }
+
+    .change {
+      margin-top: 12px;
+      font-size: clamp(18px, 4.5vw, 25px);
+      font-weight: 700;
+    }
+
+    .open-button {
+      display: inline-block;
+      margin-top: 42px;
+      padding: 18px 28px;
+      border: 2px solid #fff;
+      border-radius: 14px;
+      color: #fff;
+      text-decoration: none;
+      font-size: clamp(18px, 4.5vw, 24px);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .open-button:active {
+      transform: scale(0.98);
+    }
+
+    .error {
+      margin-top: 18px;
+      font-size: 16px;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 16px; }
+      .screen { min-height: calc(100dvh - 32px); }
+      .symbol { margin-bottom: 28px; }
+      .open-button { margin-top: 34px; width: 100%; }
+    }
+  </style>
 </head>
 
 <body>
-  <p>
-    <a href="https://www.investing.com/currencies/xau-usd">
-      https://www.investing.com/currencies/xau-usd
+  <main class="screen">
+    <div class="symbol">XAU / USD</div>
+
+    <div id="price" class="price">$—</div>
+
+    <div class="currency">GOLD / US DOLLAR</div>
+
+    <div class="status">
+      <span class="dot"></span>LIVE DATA
+    </div>
+
+    <div id="updated" class="updated">Waiting for price...</div>
+    <div id="change" class="change"></div>
+
+    <a class="open-button"
+       href="https://www.investing.com/currencies/xau-usd"
+       target="_blank" rel="noopener">
+      OPEN INVESTING.COM
     </a>
-  </p>
+
+    <div id="error" class="error"></div>
+  </main>
+
+  <script>
+    async function loadPrice() {
+      const priceEl = document.getElementById("price");
+      const updatedEl = document.getElementById("updated");
+      const changeEl = document.getElementById("change");
+      const errorEl = document.getElementById("error");
+
+      try {
+        // Cache-buster makes sure the browser does not show an old price.json.
+        const response = await fetch("price.json?t=" + Date.now(), {
+          cache: "no-store"
+        });
+
+        if (!response.ok) throw new Error("Price file unavailable");
+
+        const data = await response.json();
+
+        if (typeof data.price !== "number") {
+          throw new Error("No price in price.json");
+        }
+
+        priceEl.textContent = "$" + data.price.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+
+        if (data.timestamp) {
+          const d = new Date(data.timestamp * 1000);
+          updatedEl.textContent =
+            "Updated " + d.toLocaleTimeString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit"
+            });
+        } else {
+          updatedEl.textContent = "Price updated";
+        }
+
+        if (typeof data.ch === "number") {
+          const sign = data.ch >= 0 ? "+" : "";
+          changeEl.textContent =
+            "Today: " + sign + data.ch.toFixed(2) +
+            (typeof data.chp === "number" ? "  (" + sign + data.chp.toFixed(2) + "%)" : "");
+        }
+
+        errorEl.textContent = "";
+      } catch (err) {
+        errorEl.textContent = "Waiting for the next price update...";
+      }
+    }
+
+    loadPrice();
+
+    // The page checks for a newly published price every 30 seconds.
+    // GitHub Actions supplies the actual price update.
+    setInterval(loadPrice, 30000);
+  </script>
 </body>
 </html>
